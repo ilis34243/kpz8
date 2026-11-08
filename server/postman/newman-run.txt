@@ -1,0 +1,209 @@
+(node:24484) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
+(Use `node --trace-deprecation ...` to show where the warning was created)
+newman
+
+Leisure centre API (lab 5)
+
+□ Halls
+└ POST /halls - create
+  POST http://localhost:4000/v1/halls [201 Created, 1.17kB, 291ms]
+  √  status is 201
+  √  hall saved and id captured
+
+└ GET /halls - list with joined events
+  GET http://localhost:4000/v1/halls [200 OK, 1.96kB, 7ms]
+  √  status is 200
+  √  every hall carries its events array
+
+└ GET /halls/:id - one hall
+  GET http://localhost:4000/v1/halls/18 [200 OK, 1.15kB, 48ms]
+  √  status is 200
+  √  data check
+
+└ PATCH /halls/:id - update capacity
+  PATCH http://localhost:4000/v1/halls/18 [200 OK, 1.17kB, 237ms]
+  √  status is 200
+  √  data check
+
+└ POST /halls - duplicate name is rejected
+  POST http://localhost:4000/v1/halls [409 Conflict, 2.44kB, 50ms]
+  √  status is 409
+  √  unique violation reported
+
+└ POST /halls - invalid body
+  POST http://localhost:4000/v1/halls [400 Bad Request, 1.9kB, 4ms]
+  √  status is 400
+  √  field errors listed
+
+└ GET /halls/:id - not found
+  GET http://localhost:4000/v1/halls/999999 [404 Not Found, 1.55kB, 50ms]
+  √  status is 404
+
+□ Clients
+└ POST /clients - create
+  POST http://localhost:4000/v1/clients [201 Created, 1.17kB, 115ms]
+  √  status is 201
+  √  client saved and id captured
+
+└ GET /clients - list with joined rentals
+  GET http://localhost:4000/v1/clients [200 OK, 1.75kB, 6ms]
+  √  status is 200
+  √  every client carries its rentals array
+
+└ GET /clients/:id
+  GET http://localhost:4000/v1/clients/11 [200 OK, 1.15kB, 47ms]
+  √  status is 200
+  √  data check
+
+└ PATCH /clients/:id - change phone
+  PATCH http://localhost:4000/v1/clients/11 [200 OK, 1.16kB, 235ms]
+  √  status is 200
+  √  data check
+
+└ POST /clients - invalid email
+  POST http://localhost:4000/v1/clients [400 Bad Request, 1.92kB, 3ms]
+  √  status is 400
+
+□ Events
+└ POST /events - create with hall_id
+  POST http://localhost:4000/v1/events [201 Created, 1.32kB, 154ms]
+  √  status is 201
+  √  created event contains joined hall
+
+└ GET /events - list with joined hall
+  GET http://localhost:4000/v1/events [200 OK, 2.66kB, 6ms]
+  √  status is 200
+  √  every event carries its hall
+
+└ GET /events/:id - event with registrations and feedbacks
+  GET http://localhost:4000/v1/events/12 [200 OK, 1.3kB, 45ms]
+  √  status is 200
+  √  data check
+
+└ PATCH /events/:id - change type
+  PATCH http://localhost:4000/v1/events/12 [200 OK, 1.3kB, 278ms]
+  √  status is 200
+  √  data check
+
+└ POST /events - unknown hall_id
+  POST http://localhost:4000/v1/events [400 Bad Request, 1.61kB, 45ms]
+  √  status is 400
+  √  foreign key problem named
+
+└ POST /events - end before start
+  POST http://localhost:4000/v1/events [400 Bad Request, 1.95kB, 3ms]
+  √  status is 400
+
+□ Hall rentals (join client + hall)
+└ POST /hall-rentals - create
+  POST http://localhost:4000/v1/hall-rentals [201 Created, 1.38kB, 193ms]
+  √  status is 201
+  √  rental returns nested client and hall
+
+└ GET /hall-rentals - list
+  GET http://localhost:4000/v1/hall-rentals [200 OK, 1.96kB, 6ms]
+  √  status is 200
+  √  every rental carries client and hall
+
+└ GET /hall-rentals/:id
+  GET http://localhost:4000/v1/hall-rentals/13 [200 OK, 1.36kB, 46ms]
+  √  status is 200
+  √  data check
+
+└ PATCH /hall-rentals/:id - confirm status
+  PATCH http://localhost:4000/v1/hall-rentals/13 [200 OK, 1.37kB, 187ms]
+  √  status is 200
+  √  data check
+
+└ POST /hall-rentals - unknown client_id
+  POST http://localhost:4000/v1/hall-rentals [400 Bad Request, 1.63kB, 89ms]
+  √  status is 400
+
+□ Event registrations (join event + client)
+└ POST /event-registrations - create
+  POST http://localhost:4000/v1/event-registrations [201 Created, 1.42kB, 188ms]
+  √  status is 201
+  √  registration returns nested event and client
+
+└ GET /event-registrations - list
+  GET http://localhost:4000/v1/event-registrations [200 OK, 2.75kB, 6ms]
+  √  status is 200
+  √  every registration carries event and client
+
+└ PATCH /event-registrations/:id - more seats
+  PATCH http://localhost:4000/v1/event-registrations/14 [200 OK, 1.42kB, 191ms]
+  √  status is 200
+  √  data check
+
+└ POST /event-registrations - duplicate pair
+  POST http://localhost:4000/v1/event-registrations [409 Conflict, 2.44kB, 134ms]
+  √  status is 409
+
+└ DELETE /event-registrations/:id
+  DELETE http://localhost:4000/v1/event-registrations/14 [200 OK, 1.41kB, 143ms]
+  √  status is 200
+
+□ Feedback (join client + event)
+└ POST /feedbacks - create
+  POST http://localhost:4000/v1/feedbacks [201 Created, 1.44kB, 195ms]
+  √  status is 201
+  √  feedback returns nested client and event
+
+└ GET /feedbacks - list
+  GET http://localhost:4000/v1/feedbacks [200 OK, 2.55kB, 6ms]
+  √  status is 200
+  √  every feedback carries client and event
+
+└ PATCH /feedbacks/:id - change rating
+  PATCH http://localhost:4000/v1/feedbacks/8 [200 OK, 1.43kB, 187ms]
+  √  status is 200
+  √  data check
+
+└ POST /feedbacks - rating out of range
+  POST http://localhost:4000/v1/feedbacks [400 Bad Request, 1.99kB, 2ms]
+  √  status is 400
+
+└ DELETE /feedbacks/:id
+  DELETE http://localhost:4000/v1/feedbacks/8 [200 OK, 1.42kB, 143ms]
+  √  status is 200
+
+□ Cleanup
+└ DELETE /hall-rentals/:id
+  DELETE http://localhost:4000/v1/hall-rentals/13 [200 OK, 1.37kB, 150ms]
+  √  status is 200
+
+└ DELETE /events/:id
+  DELETE http://localhost:4000/v1/events/12 [200 OK, 1.3kB, 150ms]
+  √  status is 200
+
+└ DELETE /clients/:id
+  DELETE http://localhost:4000/v1/clients/11 [200 OK, 1.16kB, 138ms]
+  √  status is 200
+
+└ DELETE /halls/:id
+  DELETE http://localhost:4000/v1/halls/18 [200 OK, 1.16kB, 147ms]
+  √  status is 200
+
+└ GET /halls/:id after delete
+  GET http://localhost:4000/v1/halls/18 [404 Not Found, 1.54kB, 48ms]
+  √  status is 404
+
+┌─────────────────────────┬───────────────────┬───────────────────┐
+│                         │          executed │            failed │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│              iterations │                 1 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│                requests │                38 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│            test-scripts │                38 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│      prerequest-scripts │                38 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│              assertions │                63 │                 0 │
+├─────────────────────────┴───────────────────┴───────────────────┤
+│ total run duration: 7.1s                                        │
+├─────────────────────────────────────────────────────────────────┤
+│ total data received: 23.06kB (approx)                           │
+├─────────────────────────────────────────────────────────────────┤
+│ average response time: 104ms [min: 2ms, max: 291ms, s.d.: 86ms] │
+└─────────────────────────────────────────────────────────────────┘

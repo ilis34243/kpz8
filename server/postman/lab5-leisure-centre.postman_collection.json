@@ -1,0 +1,1332 @@
+{
+  "info": {
+    "name": "Leisure centre API (lab 5)",
+    "description": "CRUD + JOIN tests for halls, clients, events, event_registrations, hall_rentals and feedback endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('runTs')) { pm.collectionVariables.set('runTs', String(Date.now())); }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/v1"
+    },
+    {
+      "key": "runTs",
+      "value": ""
+    },
+    {
+      "key": "hallId",
+      "value": ""
+    },
+    {
+      "key": "clientId",
+      "value": ""
+    },
+    {
+      "key": "eventId",
+      "value": ""
+    },
+    {
+      "key": "rentalId",
+      "value": ""
+    },
+    {
+      "key": "registrationId",
+      "value": ""
+    },
+    {
+      "key": "feedbackId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Halls",
+      "item": [
+        {
+          "name": "POST /halls - create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/halls",
+              "host": ["{{baseUrl}}"],
+              "path": ["halls"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Studio {{runTs}}\",\n  \"capacity\": 20,\n  \"description\": \"Created from Postman collection\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('hall saved and id captured', function () { const d = pm.response.json().data; pm.expect(d.name).to.include('Postman Studio'); pm.collectionVariables.set('hallId', d.id); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /halls - list with joined events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/halls",
+              "host": ["{{baseUrl}}"],
+              "path": ["halls"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('every hall carries its events array', function () { const data = pm.response.json().data; pm.expect(data).to.be.an('array'); data.forEach((hall) => pm.expect(hall.events).to.be.an('array')); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /halls/:id - one hall",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/halls/{{hallId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["halls", "{{hallId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('data check', function () { const d = pm.response.json().data; pm.expect(d.capacity).to.eql(20); pm.expect(d.events).to.be.an('array'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /halls/:id - update capacity",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/halls/{{hallId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["halls", "{{hallId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capacity\": 24\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('data check', function () { const d = pm.response.json().data; pm.expect(d.capacity).to.eql(24); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /halls - duplicate name is rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/halls",
+              "host": ["{{baseUrl}}"],
+              "path": ["halls"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Studio {{runTs}}\",\n  \"capacity\": 20,\n  \"description\": \"Created from Postman collection\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 409', function () { pm.response.to.have.status(409); });",
+                  "pm.test('unique violation reported', function () { pm.expect(pm.response.json().errorType).to.eql('Validation'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /halls - invalid body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/halls",
+              "host": ["{{baseUrl}}"],
+              "path": ["halls"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capacity\": -5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('field errors listed', function () { const body = pm.response.json(); pm.expect(body.errorType).to.eql('Validation'); pm.expect(body.errorsValidation.length).to.be.above(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /halls/:id - not found",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/halls/999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["halls", "999999"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 404', function () { pm.response.to.have.status(404); });"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Clients",
+      "item": [
+        {
+          "name": "POST /clients - create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["clients"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Postman Client\",\n  \"email\": \"postman.{{runTs}}@test.com\",\n  \"phone\": \"+380670000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('client saved and id captured', function () { const d = pm.response.json().data; pm.expect(d.email).to.include('postman.'); pm.collectionVariables.set('clientId', d.id); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /clients - list with joined rentals",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["clients"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('every client carries its rentals array', function () { const data = pm.response.json().data; data.forEach((client) => pm.expect(client.rentals).to.be.an('array')); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /clients/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clients/{{clientId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["clients", "{{clientId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('data check', function () { const d = pm.response.json().data; pm.expect(d.full_name).to.eql('Postman Client'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /clients/:id - change phone",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clients/{{clientId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["clients", "{{clientId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+380670000111\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('data check', function () { const d = pm.response.json().data; pm.expect(d.phone).to.eql('+380670000111'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /clients - invalid email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["clients"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"No Email\",\n  \"email\": \"not-an-email\",\n  \"phone\": \"+380670000222\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 400', function () { pm.response.to.have.status(400); });"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "POST /events - create with hall_id",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["events"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman master class\",\n  \"type\": \"MASTER_CLASS\",\n  \"start_datetime\": \"2027-02-01T10:00:00.000Z\",\n  \"end_datetime\": \"2027-02-01T12:00:00.000Z\",\n  \"hall_id\": \"{{hallId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('created event contains joined hall', function () { const d = pm.response.json().data; pm.expect(d.hall.name).to.include('Postman Studio'); pm.collectionVariables.set('eventId', d.id); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /events - list with joined hall",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["events"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('every event carries its hall', function () { const data = pm.response.json().data; data.forEach((event) => pm.expect(event.hall).to.be.an('object')); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /events/:id - event with registrations and feedbacks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["events", "{{eventId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('data check', function () { const d = pm.response.json().data; pm.expect(d.hall.id).to.eql(Number(pm.collectionVariables.get('hallId'))); pm.expect(d.registrations).to.be.an('array'); pm.expect(d.feedbacks).to.be.an('array'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /events/:id - change type",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["events", "{{eventId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"CONCERT\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('data check', function () { const d = pm.response.json().data; pm.expect(d.type).to.eql('CONCERT'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /events - unknown hall_id",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["events"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman master class\",\n  \"type\": \"MASTER_CLASS\",\n  \"start_datetime\": \"2027-02-01T10:00:00.000Z\",\n  \"end_datetime\": \"2027-02-01T12:00:00.000Z\",\n  \"hall_id\": 999999\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('foreign key problem named', function () { const body = pm.response.json(); pm.expect(body.errorsValidation[0].hall_id).to.be.a('string'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /events - end before start",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["events"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman master class\",\n  \"type\": \"MASTER_CLASS\",\n  \"start_datetime\": \"2027-02-01T10:00:00.000Z\",\n  \"end_datetime\": \"2027-01-01T09:00:00.000Z\",\n  \"hall_id\": \"{{hallId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 400', function () { pm.response.to.have.status(400); });"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Hall rentals (join client + hall)",
+      "item": [
+        {
+          "name": "POST /hall-rentals - create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hall-rentals",
+              "host": ["{{baseUrl}}"],
+              "path": ["hall-rentals"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hall_id\": \"{{hallId}}\",\n  \"client_id\": \"{{clientId}}\",\n  \"start_datetime\": \"2027-02-05T14:00:00.000Z\",\n  \"end_datetime\": \"2027-02-05T16:00:00.000Z\",\n  \"total_cost\": 500.25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('rental returns nested client and hall', function () { const d = pm.response.json().data; pm.expect(d.client.full_name).to.eql('Postman Client'); pm.expect(d.hall.name).to.include('Postman Studio'); pm.collectionVariables.set('rentalId', d.id); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /hall-rentals - list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hall-rentals",
+              "host": ["{{baseUrl}}"],
+              "path": ["hall-rentals"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('every rental carries client and hall', function () { const data = pm.response.json().data; data.forEach((rental) => { pm.expect(rental.client).to.be.an('object'); pm.expect(rental.hall).to.be.an('object'); }); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /hall-rentals/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hall-rentals/{{rentalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["hall-rentals", "{{rentalId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('data check', function () { const d = pm.response.json().data; pm.expect(Number(d.total_cost)).to.eql(500.25); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /hall-rentals/:id - confirm status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hall-rentals/{{rentalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["hall-rentals", "{{rentalId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CONFIRMED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('data check', function () { const d = pm.response.json().data; pm.expect(d.status).to.eql('CONFIRMED'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /hall-rentals - unknown client_id",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hall-rentals",
+              "host": ["{{baseUrl}}"],
+              "path": ["hall-rentals"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hall_id\": \"{{hallId}}\",\n  \"client_id\": 999999,\n  \"start_datetime\": \"2027-02-05T14:00:00.000Z\",\n  \"end_datetime\": \"2027-02-05T16:00:00.000Z\",\n  \"total_cost\": 500.25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 400', function () { pm.response.to.have.status(400); });"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Event registrations (join event + client)",
+      "item": [
+        {
+          "name": "POST /event-registrations - create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/event-registrations",
+              "host": ["{{baseUrl}}"],
+              "path": ["event-registrations"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event_id\": \"{{eventId}}\",\n  \"client_id\": \"{{clientId}}\",\n  \"seats\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('registration returns nested event and client', function () { const d = pm.response.json().data; pm.expect(d.client.full_name).to.eql('Postman Client'); pm.expect(d.event.hall.name).to.include('Postman Studio'); pm.collectionVariables.set('registrationId', d.id); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /event-registrations - list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/event-registrations",
+              "host": ["{{baseUrl}}"],
+              "path": ["event-registrations"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('every registration carries event and client', function () { const data = pm.response.json().data; data.forEach((reg) => { pm.expect(reg.event).to.be.an('object'); pm.expect(reg.client).to.be.an('object'); }); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /event-registrations/:id - more seats",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/event-registrations/{{registrationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["event-registrations", "{{registrationId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"seats\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('data check', function () { const d = pm.response.json().data; pm.expect(d.seats).to.eql(3); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /event-registrations - duplicate pair",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/event-registrations",
+              "host": ["{{baseUrl}}"],
+              "path": ["event-registrations"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event_id\": \"{{eventId}}\",\n  \"client_id\": \"{{clientId}}\",\n  \"seats\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 409', function () { pm.response.to.have.status(409); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /event-registrations/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/event-registrations/{{registrationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["event-registrations", "{{registrationId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 200', function () { pm.response.to.have.status(200); });"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Feedback (join client + event)",
+      "item": [
+        {
+          "name": "POST /feedbacks - create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"client_id\": \"{{clientId}}\",\n  \"event_id\": \"{{eventId}}\",\n  \"rating\": 5,\n  \"comment\": \"Nice event\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('feedback returns nested client and event', function () { const d = pm.response.json().data; pm.expect(d.client.id).to.eql(Number(pm.collectionVariables.get('clientId'))); pm.expect(d.event.hall.name).to.include('Postman Studio'); pm.collectionVariables.set('feedbackId', d.id); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /feedbacks - list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('every feedback carries client and event', function () { const data = pm.response.json().data; data.forEach((fb) => { pm.expect(fb.client).to.be.an('object'); pm.expect(fb.event).to.be.an('object'); }); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /feedbacks/:id - change rating",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks/{{feedbackId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks", "{{feedbackId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('data check', function () { const d = pm.response.json().data; pm.expect(d.rating).to.eql(4); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /feedbacks - rating out of range",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"client_id\": \"{{clientId}}\",\n  \"event_id\": \"{{eventId}}\",\n  \"rating\": 9,\n  \"comment\": \"Nice event\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 400', function () { pm.response.to.have.status(400); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /feedbacks/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/feedbacks/{{feedbackId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["feedbacks", "{{feedbackId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 200', function () { pm.response.to.have.status(200); });"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cleanup",
+      "item": [
+        {
+          "name": "DELETE /hall-rentals/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hall-rentals/{{rentalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["hall-rentals", "{{rentalId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 200', function () { pm.response.to.have.status(200); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /events/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["events", "{{eventId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 200', function () { pm.response.to.have.status(200); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /clients/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clients/{{clientId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["clients", "{{clientId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 200', function () { pm.response.to.have.status(200); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /halls/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/halls/{{hallId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["halls", "{{hallId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 200', function () { pm.response.to.have.status(200); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /halls/:id after delete",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/halls/{{hallId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["halls", "{{hallId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status is 404', function () { pm.response.to.have.status(404); });"]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,301 @@
+{
+  "info": {
+    "_postman_id": "7c1f0a55-2b9e-4d3c-9a11-5e6d0c2b8f41",
+    "name": "Lab 5 — Screenshot set",
+    "description": "Набір із 7 запитів для скриншотів до звіту. Кожен запит уже містить готове тіло і перевірки (вкладка Tests). Порядок імена збігається з файлами docs/screenshots/01-...png ... 07-...png. Після 7 кадрів запустити теку Cleanup — вона поверне базу до стану сидів.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000/v1" },
+    { "key": "newRentalId", "value": "" },
+    { "key": "originalEventName", "value": "Autumn acoustic concert" }
+  ],
+  "item": [
+    {
+      "name": "01 — POST /hall-rentals (create, JOIN)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"hall_id\": 1,\n  \"client_id\": 1,\n  \"start_datetime\": \"2027-03-01T14:00:00.000Z\",\n  \"end_datetime\": \"2027-03-01T16:00:00.000Z\",\n  \"total_cost\": 450.50,\n  \"status\": \"RESERVED\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/hall-rentals",
+          "host": ["{{baseUrl}}"],
+          "path": ["hall-rentals"]
+        },
+        "description": "КАДР 01-rental-create.png: зліва видно POST-запит з hall_id/client_id, справа — 201 Created і у відповіді вкладені об'єкти hall та client (а не тільки id)."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "pm.test('hall вкладений, а не лише hall_id', () => {",
+              "  pm.expect(r.data.hall).to.be.an('object');",
+              "  pm.expect(r.data.hall.name).to.eql('Craft Studio');",
+              "});",
+              "pm.test('client вкладений', () => {",
+              "  pm.expect(r.data.client.full_name).to.eql('Anna Kovalchuk');",
+              "});",
+              "pm.collectionVariables.set('newRentalId', r.data.id);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "02 — GET /hall-rentals/1 (one, JOIN)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/hall-rentals/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["hall-rentals", "1"]
+        },
+        "description": "КАДР 02-rental-show.png: 200 OK, оренدار id=1 разом із залом (Concert Hall) і клієнтом (Boris Ivanchenko)."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('rental + hall + client', () => {",
+              "  pm.expect(r.data.hall.name).to.be.a('string');",
+              "  pm.expect(r.data.client.email).to.be.a('string');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "03 — GET /events/1 (event з hall, registrations, feedbacks)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/events/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["events", "1"]
+        },
+        "description": "КАДР 03-event-join.png: найбагатший відповідь — подія, всередині hall, масив registrations де кожна заявка має свого client, і feedbacks. Це головний доказ JOIN."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('hall вкладений', () => pm.expect(r.data.hall.name).to.eql('Craft Studio'));",
+              "pm.test('registrations з client', () => {",
+              "  pm.expect(r.data.registrations).to.be.an('array').that.is.not.empty;",
+              "  pm.expect(r.data.registrations[0].client).to.be.an('object');",
+              "});",
+              "pm.test('feedbacks', () => pm.expect(r.data.feedbacks).to.be.an('array').that.is.not.empty);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "04 — GET /event-registrations (list, event.hall)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/event-registrations",
+          "host": ["{{baseUrl}}"],
+          "path": ["event-registrations"]
+        },
+        "description": "КАДР 04-registrations.png: 200 OK, список заявок, у кожної вкладений event, а в event — hall (дворівневий JOIN)."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('кожен запис має event.hall', () => {",
+              "  pm.expect(r.data).to.be.an('array').that.is.not.empty;",
+              "  r.data.forEach((x) => pm.expect(x.event.hall.name).to.be.a('string'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "05 — PATCH /events/2 (оновлення)",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Autumn acoustic concert (Postman edit)\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/events/2",
+          "host": ["{{baseUrl}}"],
+          "path": ["events", "2"]
+        },
+        "description": "КАДР 05-event-patch.png: 200 OK, поле name змінилося, hall лишився вкладеним. Cleanup поверне стару назву."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('name оновлено', () => pm.expect(r.data.name).to.include('Postman edit'));",
+              "pm.test('hall лишився вкладеним', () => pm.expect(r.data.hall.name).to.eql('Concert Hall'));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "06 — POST /hall-rentals з неіснуючим client_id (400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"hall_id\": 1,\n  \"client_id\": 999999,\n  \"start_datetime\": \"2027-03-02T14:00:00.000Z\",\n  \"end_datetime\": \"2027-03-02T16:00:00.000Z\",\n  \"total_cost\": 100\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/hall-rentals",
+          "host": ["{{baseUrl}}"],
+          "path": ["hall-rentals"]
+        },
+        "description": "КАДР 06-unknown-fk.png: червоний 400 Bad Request і errorMessage 'There is no record with client_id = 999999' — сервіс перевіряє FK до запису в БД."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+              "pm.test('Validation + назва поля', () => {",
+              "  pm.expect(r.errorType).to.eql('Validation');",
+              "  pm.expect(r.errorMessage).to.include('client_id');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "07 — DELETE /halls/1 зайнятий зал (409)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/halls/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["halls", "1"]
+        },
+        "description": "КАДР 07-delete-409.png: 409 Conflict, у відповіді видно driverError code 23503 'Key (id)=(1) is still referenced from table hall_rentals' — FK реально захищає дані."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('409 Conflict', () => pm.response.to.have.status(409));",
+              "pm.test('FK-конфлікт з hall_rentals', () => pm.expect(JSON.stringify(r)).to.include('hall_rentals'));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Cleanup",
+      "item": [
+        {
+          "name": "90 — DELETE створеної оренди",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/hall-rentals/{{newRentalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["hall-rentals", "{{newRentalId}}"]
+            },
+            "description": "Прибирає запис, створений кадром 01."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "91 — PATCH /events/2 повернути назву",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Autumn acoustic concert\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/events/2",
+              "host": ["{{baseUrl}}"],
+              "path": ["events", "2"]
+            },
+            "description": "Повертає події 2 початкову назву з сида."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('назва як у сиді', () => pm.expect(r.data.name).to.eql('Autumn acoustic concert'));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    }
+  ]
+}

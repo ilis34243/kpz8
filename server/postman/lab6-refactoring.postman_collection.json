@@ -1,0 +1,279 @@
+{
+  "info": {
+    "_postman_id": "b6f0c2a1-4e7d-4c58-9a3b-2f8d61c05a77",
+    "name": "Lab 6 — Refactoring: service layer, validation middleware, DTO",
+    "description": "Кадри для лабораторної №6: перші три показують 400 Bad Request від middleware-валідаторів (AppError), наступні два — контрольовану структуру відповіді ResponseDTO. Порядок імен збігається з файлами docs/screenshots/6-01-...png ... 6-05-...png. Після кадрів запустити теку Cleanup.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 — POST /halls без name (400 від middleware)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"capacity\": 20\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/halls",
+          "host": ["{{baseUrl}}"],
+          "path": ["halls"]
+        },
+        "description": "КАДР 01-middleware-400-name.png: видно, що запиту навіть не потрібно дійти до контролера — validatorCreateHall кидає AppError, і errorHandler повертає 400 із errorType=Validation та errorsValidation[{name}] (шар middleware)."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+              "pm.test('помилка прийшла з middleware-валідатора', () => {",
+              "  pm.expect(r.errorType).to.eql('Validation');",
+              "  pm.expect(r.errorMessage).to.eql('Hall name is required');",
+              "});",
+              "pm.test('errorsValidation вказує поле name', () => {",
+              "  pm.expect(r.errorsValidation[0].name).to.be.a('string');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "02 — POST /hall-rentals з від’ємною сумою (400 від validator.isFloat)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"hall_id\": 1,\n  \"client_id\": 1,\n  \"start_datetime\": \"2027-04-10T14:00:00.000Z\",\n  \"end_datetime\": \"2027-04-10T16:00:00.000Z\",\n  \"total_cost\": -5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/hall-rentals",
+          "host": ["{{baseUrl}}"],
+          "path": ["hall-rentals"]
+        },
+        "description": "КАДР 02-middleware-400-float.png: валідатор checked total_cost функцією isFloat бібліотеки validator; тіло запиту з hall_id/client_id лишається неушкодженим, але до сервісу запит не доходить."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+              "pm.test('isFloat відхилив від’ємну суму', () => {",
+              "  pm.expect(r.errorMessage).to.include('total_cost');",
+              "  pm.expect(r.errorsValidation[0].total_cost).to.be.a('string');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "03 — PATCH /events/1 з порожнім тілом (400 на оновленні)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/events/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["events", "1"]
+        },
+        "description": "КАДР 03-middleware-400-empty.png: validatorUpdateEvent перевіряєIsEmpty тіла й відмовляє до виклику контролера."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+              "pm.test('ErrorResponse має структуру валідації', () => {",
+              "  pm.expect(r.errorType).to.eql('Validation');",
+              "  pm.expect(r.errorsValidation.length).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "04 — GET /hall-rentals/1 (структура HallRentalResponseDTO)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/hall-rentals/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["hall-rentals", "1"]
+        },
+        "description": "КАДР 04-dto-rental-show.png: у відповіді саме структура DTO — hall_id/client_id окремими полями, hall і client — стислі об’єкти {id, name, capacity} / {id, full_name, email}, відсутні created_at/updated_at і service-level поля сутності."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const d = pm.response.json().data;",
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('DTO додає скалярні *_id', () => {",
+              "  pm.expect(d.hall_id).to.be.a('number');",
+              "  pm.expect(d.client_id).to.be.a('number');",
+              "});",
+              "pm.test('зв’язки схлопнуті до публічних полів', () => {",
+              "  pm.expect(Object.keys(d.hall)).to.eql(['id', 'name', 'capacity']);",
+              "  pm.expect(Object.keys(d.client)).to.eql(['id', 'full_name', 'email']);",
+              "});",
+              "pm.test('службові поля сховані', () => {",
+              "  pm.expect(d).to.not.have.property('created_at');",
+              "  pm.expect(d).to.not.have.property('updated_at');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "05 — POST /events (сервіс → entity → EventResponseDTO)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Refactoring demo concert\",\n  \"type\": \"CONCERT\",\n  \"start_datetime\": \"2027-04-11T18:00:00.000Z\",\n  \"end_datetime\": \"2027-04-11T20:00:00.000Z\",\n  \"hall_id\": 2\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/events",
+          "host": ["{{baseUrl}}"],
+          "path": ["events"]
+        },
+        "description": "КАДР 05-dto-event-create.png: успішний запит — контролер викликає EventService, отримує entity і повертає new EventResponseDTO(entity): hall {id,name,capacity}, порожні registrations/feedbacks, жодного created_at."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const d = pm.response.json().data;",
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "pm.test('відповідь = EventResponseDTO', () => {",
+              "  pm.expect(Object.keys(d)).to.eql([",
+              "    'id',",
+              "    'name',",
+              "    'type',",
+              "    'start_datetime',",
+              "    'end_datetime',",
+              "    'hall_id',",
+              "    'hall',",
+              "    'registrations',",
+              "    'feedbacks',",
+              "  ]);",
+              "});",
+              "pm.test('JOIN залишився, але через DTO', () => {",
+              "  pm.expect(d.hall.name).to.eql('Concert Hall');",
+              "  pm.expect(d.registrations).to.be.an('array');",
+              "});",
+              "pm.collectionVariables.set('demoEventId', d.id);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Cleanup",
+      "item": [
+        {
+          "name": "DELETE /events/{{demoEventId}}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{demoEventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["events", "{{demoEventId}}"]
+            },
+            "description": "Повертає базу до стану сидів після кадрів 04–05."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/v1"
+    },
+    {
+      "key": "demoEventId",
+      "value": ""
+    }
+  ]
+}

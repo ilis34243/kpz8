@@ -1,0 +1,7 @@
+{
+  "*": ["node node_modules/pretty-quick/bin/pretty-quick.js --staged"],
+  "*.{js,jsx,ts,tsx}": [
+    "node node_modules/eslint/bin/eslint.js --no-ignore --max-warnings 0",
+    "node node_modules/tsc-files/lib/index.js --noEmit"
+  ]
+}
