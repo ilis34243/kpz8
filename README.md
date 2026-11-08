@@ -241,6 +241,7 @@ src/routes/halls/$hallId.tsx      -> createFileRoute("/halls/$hallId")
 | `8-09-logged-in-nav.png` | Навігація після входу: email + «Вийти» |
 | `8-10-users-anonymous.png` | `/users` без токена: запит не надсилається |
 | `8-11-users-list.png` | `/users` після входу — захищений ендпоінт відповів 200 |
+| `8-12-network-devtools.png` | Вкладка Network: реальний `GET http://localhost:4000/v1/halls` → 200 |
 
 ![Дашборд](docs/screenshots/8-01-dashboard.png)
 ![Завантаження списку](docs/screenshots/8-02-loading-halls.png)
@@ -253,6 +254,7 @@ src/routes/halls/$hallId.tsx      -> createFileRoute("/halls/$hallId")
 ![Вхід виконано](docs/screenshots/8-09-logged-in-nav.png)
 ![Користувачі без токена](docs/screenshots/8-10-users-anonymous.png)
 ![Користувачі з токеном](docs/screenshots/8-11-users-list.png)
+![Вкладка Network з реальним запитом](docs/screenshots/8-12-network-devtools.png)
 
 ## Перевірки якості
 
@@ -281,6 +283,7 @@ CRUD-сценарій (створення → редагування → вид�
 - **Скрипти бойлерплейта під Unix.** У `client/package.json` скрипт `commitizen` використовував `exec < /dev/tty`, що не працює на Windows; замінено на `git cz --hook`. У кореневому `package.json` виправлено назву сервісу в `db:up` (`db_postgres` замість `db`) і додано залежність `concurrently`, без якої `npm run dev` не запускав обидва процеси.
 - **Юніт-тести бойлерплейта не запускались.** `vitest.setup.ts` робив `import matchers from "@testing-library/jest-dom/matchers"` і `expect.extend(matchers)`, а з `@testing-library/jest-dom` 6.9 та Vitest 4 цей дефолтний експорт дорівнює `undefined` — будь-який тест падав ще до старту (`Cannot convert undefined or null to object`). Замінено на рекомендоване `import "@testing-library/jest-dom/vitest"`. Приклад `e2e/example.spec.ts` із шаблону веде на зовнішній сайт, тому додано власний `e2e/halls.spec.ts`, а приклад залишено як є.
 - **Дані публічні, тож логін «для доказу».** CRUD-ендпоінти дозвілля на бекенді не закриті `checkJwt`, тому сам по собі JWT нічого не захищав. Щоб вимога п.5 (токен зі сховища в заголовку) була перевірюваною, додано розділ `/users`, який бекенд віддає лише з валідним токеном адміністратора; без токена запит навіть не надсилається (`enabled: token !== null`).
+- **Знімок Network потребує двох налаштувань DevTools.** Запит іде з `localhost:5173` на `localhost:4000`, тож через власний заголовок `Authorization` браузер спочатку надсилає службове `OPTIONS` (CORS preflight) — у списку воно виглядає як ще один «halls», але відповіді не має. По друге, Express віддає `ETag`, тому повторний запит показує `304 Not Modified`; аби на скріншоті був `200 OK` і `Content-Type: application/json`, увімкнено прапорець **Disable cache**.
 
 ## Висновки
 
