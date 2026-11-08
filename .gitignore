@@ -1,0 +1,35 @@
+node_modules/
+dist/
+**/node_modules/
+**/dist/
+
+# секрети: .env ніде в репозиторії не лежить, є лише .env.example
+.env
+**/.env
+!.env.example
+
+# локальні дані PostgreSQL з docker-compose
+server/database/*
+!server/database/.gitkeep
+
+# логи
+*.log
+**/log/
+server/dev-server.log
+
+# збірка та тестові артефакти
+coverage/
+storybook-static/
+**/test-results/
+**/playwright-report/
+**/storybook-static/
+
+# редактор
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+.DS_Store
+
+# бойлерплейтні prod/stage енві з значеннями секретів не комітимо
+server/config/*.env

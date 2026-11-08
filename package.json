@@ -1,0 +1,17 @@
+{
+	"name": "kpz8-fullstack",
+	"private": true,
+	"version": "1.0.0",
+	"description": "Курсова: REST API (Express + TypeORM) + клієнт (Vite + React + TypeScript) в одному репозиторії",
+	"scripts": {
+		"db:up": "docker-compose --file server/docker-compose.yml --file server/docker-compose.dev.yml --compatibility up -d db_postgres",
+		"dev:server": "npm --prefix server run dev",
+		"dev:client": "pnpm --dir client run dev",
+		"dev": "concurrently -n server,client -c blue,green \"npm run dev:server\" \"npm run dev:client\"",
+		"lint": "npm --prefix server run lint && pnpm --dir client run lint",
+		"build": "npm --prefix server run build && pnpm --dir client run build"
+	},
+	"devDependencies": {
+		"concurrently": "^9.1.2"
+	}
+}
